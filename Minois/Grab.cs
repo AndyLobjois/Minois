@@ -58,7 +58,7 @@ namespace AndyHellgrim.Minois {
 
             // Create Props Collider
             foreach (var item in Items) {
-                CreateTrigger(item.ItemGameObjectAsset.GameObject, item, item.ColliderRadius, false, colorProps);
+                CreateTrigger(item.Ref.GameObject, item, item.ColliderRadius, false, colorProps);
             }
 
             // Find Bone per Prop
@@ -138,7 +138,12 @@ namespace AndyHellgrim.Minois {
 
         void MoveTriggers() {
             for (int i = 0; i < Triggers.Count; i++) {
-                Triggers[i].transform.position = Targets[i].transform.position;
+                if (i == 0) {
+                    Triggers[i].transform.position = Targets[i].transform.position + (Targets[i].transform.forward * CharacterColliderOffset.z) + (Targets[i].transform.up * CharacterColliderOffset.y) + (Targets[i].transform.right * CharacterColliderOffset.x);
+                } else {
+                    Triggers[i].transform.position = Targets[i].transform.position;
+                }
+                
             }
         }
 
@@ -149,12 +154,12 @@ namespace AndyHellgrim.Minois {
                     pickID = Pick.gameObject.GetInstanceID();
 
                     // Parent Props to Pick.bone
-                    Pick.Item.ItemGameObjectAsset.GameObject.transform.SetParent(Pick.Item.bone);
+                    Pick.Item.Ref.GameObject.transform.SetParent(Pick.Item.bone);
                 }
 
                 // Offset Pick
-                Pick.Item.ItemGameObjectAsset.Transform.Position = Pick.Item.OffsetPickPOS;
-                Pick.Item.ItemGameObjectAsset.Transform.Rotation = Pick.Item.OffsetPickROT;
+                Pick.Item.Ref.Transform.Position = Pick.Item.OffsetPickPOS;
+                Pick.Item.Ref.Transform.Rotation = Pick.Item.OffsetPickROT;
             }
         }
 
@@ -188,9 +193,9 @@ namespace AndyHellgrim.Minois {
         
         void UnloadPick() {
             if (Pick) {
-                Pick.Item.ItemGameObjectAsset.GameObject.transform.SetParent(Pick.Parent);
-                Pick.Item.ItemGameObjectAsset.Transform.Position = Character.Transform.Position + Pick.Item.OffsetDropPOS;
-                Pick.Item.ItemGameObjectAsset.Transform.Rotation = Character.Transform.Rotation + Pick.Item.OffsetDropROT;
+                Pick.Item.Ref.GameObject.transform.SetParent(Pick.Parent);
+                Pick.Item.Ref.Transform.Position = Triggers[0].transform.position + Pick.Item.OffsetDropPOS;
+                Pick.Item.Ref.Transform.Rotation = Character.Transform.Rotation + Pick.Item.OffsetDropROT;
             }
             
             Pick = null;
@@ -227,7 +232,7 @@ namespace AndyHellgrim.Minois {
     }
 
     public class Item : StructuredData, ICollapsibleStructuredData {
-        [DataInput, HideLabel] public GameObjectAsset ItemGameObjectAsset;
+        [DataInput, HideLabel] public GameObjectAsset Ref;
         [DataInput] public float ColliderRadius = 0.2f;
 
         // Bone Target
@@ -243,8 +248,8 @@ namespace AndyHellgrim.Minois {
         [DataInput, HideLabel, Description("Rotation")] public Vector3 OffsetDropROT = Vector3.zero;
 
         public string GetHeader() {
-            if (ItemGameObjectAsset.IsNonNullAndActiveAndEnabled()) { return ItemGameObjectAsset.Name; }
-            return "Empty";
+            if (Ref.IsNonNullAndActiveAndEnabled()) { return Ref.Name; }
+            return "❌ Empty !";
         }
     }
 }
